@@ -14,11 +14,11 @@ CLIENT.connect((HOST, PORT))
 
 MSG_CODE_QUIT = '/quit'
 
-def receive(outputQueue):
+def receive(outputMsg):
   while True:
     try:
       msg = CLIENT.recv(BUFSIZ).decode('utf-8')
-      outputQueue.put(msg)
+      outputMsg(msg)
       if msg == MSG_CODE_QUIT:
         print('Connection to server closed')
         break
@@ -33,8 +33,10 @@ def send(inputQueue):
     if msg == MSG_CODE_QUIT:
       print('Closing pending...')
       break
+    
+if __name__ == '__main__':
+  inputQueue = Queue()
 
-def ui(inputQueue, outputQueue):
   root = Tk()
   root.title('Chatbox')
 
@@ -43,13 +45,11 @@ def ui(inputQueue, outputQueue):
     inputQueue.put(msg)
     chatInput.set('')
 
-  def receiveMsg():
-    while True:
-      msg = outputQueue.get()
-      if (msg == MSG_CODE_QUIT):
-        root.quit()
-        break
-      chatOutput.set(str(chatOutput.get()) + '\n' + msg)
+  def receiveMsg(msg):
+    if (msg == MSG_CODE_QUIT):
+      root.quit()
+      return
+    chatDisplay.insert(END, msg + '\n')
 
   # the main frame of the app
   mainframe = ttk.Frame(root, padding='3 3 12 12')
@@ -74,24 +74,15 @@ def ui(inputQueue, outputQueue):
   ttk.Button(rightCol, text='Send', command=sendMsg).grid(column=1, row=2)
 
   # the chat display
-  chatOutput = StringVar()
-  chatDisplay = ttk.Entry(rightCol, width=100, textvariable=chatOutput, state='disabled')
+  chatDisplay = Text(rightCol, width=100, height=50)
   chatDisplay.grid(column=0, row=1, columnspan=2)
 
-  recvBuffer = threading.Thread(target=receiveMsg)
-  root.mainloop()
-  recvBuffer.join()
-    
-if __name__ == '__main__':
-  inputQueue = Queue()
-  outputQueue = Queue()
-  receiveThread = threading.Thread(target=receive, args=(outputQueue,))
+  receiveThread = threading.Thread(target=receive, args=(receiveMsg,))
   sendThread = threading.Thread(target=send, args=(inputQueue,))
-  uiThread = threading.Thread(target=ui, args=(inputQueue, outputQueue))
   receiveThread.start()
   sendThread.start()
-  uiThread.start()
+  root.mainloop()
+
   receiveThread.join()
   sendThread.join()
-  uiThread.join()
   CLIENT.close()

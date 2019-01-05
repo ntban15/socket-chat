@@ -4,6 +4,7 @@ import socket
 import threading
 
 clients = {}
+MSG_CODE_FORCE_QUIT = 'MSG_CODE_FORCE_QUIT'
 HOST = '127.0.0.1'
 PORT = 8000
 BUFSIZ = 1024
@@ -13,9 +14,12 @@ SERVER.bind(ADDR)
 
 def accept_connections():
   while True:
-    client, client_address = SERVER.accept()
-    print('%s has connected' % str(client_address))
-    threading.Thread(target=handle_client, args=(client,)).start()
+    try:
+      client, client_address = SERVER.accept()
+      print('%s has connected' % str(client_address))
+      threading.Thread(target=handle_client, args=(client,)).start()
+    except KeyboardInterrupt:
+      break
 
 def handle_client(client):
   client.send(bytes('Welcome to my chat app. What is your name?', 'utf-8'))
@@ -23,14 +27,18 @@ def handle_client(client):
   client.send(bytes('Type /quit if you want to exit the chat app', 'utf-8'))
   clients[client] = name
   while True:
-    msg = client.recv(BUFSIZ)
-    if msg != bytes('/quit', 'utf-8'):
-      broadcast(name + ': ' + msg.decode('utf-8'))
-    else:
-      client.send(msg)
-      client.close()
-      del clients[client]
-      broadcast('%s has leaved the room' % str(name))
+    try: 
+      msg = client.recv(BUFSIZ)
+      if msg != bytes('/quit', 'utf-8'):
+        broadcast(name + ': ' + msg.decode('utf-8'))
+      else:
+        client.send(msg)
+        client.close()
+        del clients[client]
+        broadcast('%s has leaved the room' % str(name))
+        break
+    except KeyboardInterrupt:
+      broadcast(MSG_CODE_FORCE_QUIT)
       break
 
 def broadcast(msg):
