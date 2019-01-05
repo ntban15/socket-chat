@@ -61,9 +61,33 @@ if __name__ == '__main__':
   leftCol = ttk.Frame(mainframe)
   leftCol.grid(column=0, row=0, sticky=(N, W, E, S))
 
+  # personal info
+  nameInput = StringVar()
+  nameEntry = ttk.Entry(leftCol, width=50, textvariable=nameInput)
+  ttk.Label(leftCol, text='Name').grid(column=0, row=0)
+  nameEntry.grid(column=1, row=0)
+
+  # status
+  statusEntry = Text(leftCol, width=50, height=4)
+  ttk.Label(leftCol, text='Status').grid(column=0, row=1)
+  statusEntry.grid(column=1, row=1)
+
+  # update name and status button
+  ttk.Button(leftCol, text='Update').grid(column=1, row=2, sticky=(E,))
+
+  # friend list
+  ttk.Label(leftCol, text='Friend list').grid(column=0, row=3, columnspan=2)
+  friendList = Listbox(leftCol, height=30)
+  friendList.grid(column=0, row=4, columnspan=2, sticky=(E,W))
+
+  # friend status
+  ttk.Label(leftCol, text='Friend\'s status').grid(column=0, row=5)
+  friendStatus = Text(leftCol, width=50, height=4)
+  friendStatus.grid(column=1, row=5)
+
   # right column (for chatbox + friend info)
   rightCol = ttk.Frame(mainframe)
-  rightCol.grid(column=0, row=1, rowspan=2, sticky=(W, W, E, S))
+  rightCol.grid(column=1, row=0, columnspan=2, sticky=(N, W, E, S))
 
   # the chat input
   chatInput = StringVar()
@@ -75,7 +99,7 @@ if __name__ == '__main__':
 
   # the chat display
   chatDisplay = Text(rightCol, width=100, height=50)
-  chatDisplay.grid(column=0, row=1, columnspan=2)
+  chatDisplay.grid(column=0, row=1, columnspan=2, sticky=(N,))
 
   receiveThread = threading.Thread(target=receive, args=(receiveMsg,))
   sendThread = threading.Thread(target=send, args=(inputQueue,))
