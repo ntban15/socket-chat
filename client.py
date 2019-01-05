@@ -23,7 +23,7 @@ def receive(outputMsg):
         print('Connection to server closed')
         break
     except OSError:
-      outputQueue.put(MSG_CODE_QUIT)
+      outputMsg(MSG_CODE_QUIT)
       break
 
 def send(inputQueue):
