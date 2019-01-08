@@ -6,6 +6,7 @@ from tkinter import ttk
 import socket
 import threading
 import constants
+import utils
 
 HOST = '127.0.0.1'
 PORT = 8000
@@ -41,16 +42,62 @@ if __name__ == '__main__':
   root = Tk()
   root.title('Chatbox')
 
+  isChatAll = False
+  clientName = ''
+  targetName = ''
+
   def sendMsg(*args):
     msg = str(chatInput.get())
-    inputQueue.put(msg)
+    msgType = constants.SEND_MSG
+    if isChatAll:
+      msgType = constants.SEND_MSG_ALL
+
+    sendMsgAction = {
+      constants.TYPE: msgType,
+      constants.PAYLOAD: {
+        constants.SENDER: clientName,
+        constants.MESSAGE: msg,
+        constants.RECEIVER: targetName
+      }
+    }
+
+    inputQueue.put(utils.encodeDict(sendMsgAction))
     chatInput.set('')
 
   def receiveMsg(msg):
-    if (msg == MSG_CODE_QUIT):
-      root.quit()
-      return
-    chatDisplay.insert(END, msg + '\n')
+    msgDict = utils.decodeDict(msg)
+    msgType = msgDict[constants.TYPE]
+    msgPayload = msgDict[constants.PAYLOAD]
+    if (msgType == constants.UPDATE_FRIEND_STATUS):
+      pass
+    elif (msgType == constants.RECEIVE_THREAD_INFO):
+      threadMessages = msgPayload[constants.MESSAGES]
+      isFriendOnline = msgPayload[constants.FRIEND_STATUS][constants.IS_ONLINE]
+      status = msgPayload[constants.FRIEND_STATUS][constants.STATUS]
+
+      chatDisplay.configure(state=NORMAL)
+      for threadMessage in threadMessages:
+        chatDisplay.insert(END, threadMessage[constants.SENDER] + ': ' + threadMessage[constants.MESSAGE] + '\n')
+      chatDisplay.configure(state=DISABLED)
+
+      onlineState = 'Offline'
+      if isFriendOnline:
+        onlineState = 'Online'
+
+      friendStatus.configure(state=NORMAL)
+      friendStatus.delete(1.0, END)
+      friendStatus.insert(END, onlineState + ' - ' + status)
+      friendStatus.configure(state=DISABLED)
+
+    elif (msgType == constants.RECEIVE_MSG):
+      senderName = msgPayload[constants.SENDER]
+      msgContent = msgPayload[constants.MESSAGE]
+
+      chatDisplay.configure(state=NORMAL)
+      chatDisplay.insert(END, senderName + ': ' + msgContent + '\n')
+      chatDisplay.configure(state=DISABLED)
+    elif (msgType == constants.RECEIVE_USERS):
+      pass
 
   # the main frame of the app
   mainframe = ttk.Frame(root, padding='3 3 12 12')
@@ -83,7 +130,7 @@ if __name__ == '__main__':
 
   # friend status
   ttk.Label(leftCol, text='Friend\'s status').grid(column=0, row=5)
-  friendStatus = Text(leftCol, width=50, height=4)
+  friendStatus = Text(leftCol, width=50, height=4, state=DISABLED)
   friendStatus.grid(column=1, row=5)
 
   # right column (for chatbox + friend info)
@@ -100,7 +147,7 @@ if __name__ == '__main__':
 
   # the chat display
   chatDisplay = Text(rightCol, width=100, height=50)
-  chatDisplay.grid(column=0, row=1, columnspan=2, sticky=(N,))
+  chatDisplay.grid(column=0, row=1, columnspan=2, sticky=(N,), state=DISABLED)
 
   receiveThread = threading.Thread(target=receive, args=(receiveMsg,))
   sendThread = threading.Thread(target=send, args=(inputQueue,))
