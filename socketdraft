@@ -1,0 +1,127 @@
+{
+  users: {
+    john_smith: '123456',
+    sarah_123: '123456'
+  },
+  chats: {
+    username1-username2: [
+      {
+        sender: '',
+        message: ''
+      }
+    ],
+    all: [
+      {
+        sender: '',
+        message: ''
+      }
+    ]
+  },
+  statuses: [
+    john_smith: {
+      is_online: false,
+      status: 'Haha'
+    }
+  ]
+}
+
+
+# CLIENT
+{
+  type: 'INIT_THREAD',
+  payload: {
+    sender: '',
+    receiver: ''
+  }
+}
+
+{
+  type: 'SEND_MSG',
+  payload: {
+    sender: '',
+    receiver: '',
+    message: ''
+  }
+}
+
+{
+  type: 'SEND_MSG_ALL',
+  payload: {
+    sender: '',
+    message: ''
+  }
+}
+
+{
+  type: 'CLOSE_CONNECTION',
+  payload: {
+    username: ''
+  }
+}
+
+{
+  type: 'OPEN_CONNECTION',
+  payload: {
+    username: '',
+    password: ''
+  }
+}
+
+{
+  type: 'UPDATE_STATUS',
+  payload: {
+    username: '',
+    status: ''
+  }
+}
+
+# SERVER
+{
+  type: 'UPDATE_FRIEND_STATUS',
+  payload: {
+    username: '',
+    status: ''
+  }
+}
+
+{
+  type: 'RECEIVE_THREAD_INFO',
+  payload: {
+    messages: [
+      {
+        sender: '',
+        message: ''
+      }
+    ],
+    friend_status: {
+      is_online: true,
+      status: ''
+    }
+  }
+}
+
+{
+  type: 'RECEIVE_MSG',
+  payload: {
+    is_chat_all: false,
+    sender: '',
+    message: ''
+  },
+}
+
+{
+  type: 'RECEIVE_USERS',
+  payload: {
+    users: [
+      '',
+      ''
+    ]
+  }
+}
+
+{
+  type: 'AUTHENTICATION_FAIL',
+  payload: {
+    message: ''
+  }
+}
