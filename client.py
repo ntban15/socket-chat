@@ -5,6 +5,7 @@ from tkinter import ttk
 
 import socket
 import threading
+import constants
 
 HOST = '127.0.0.1'
 PORT = 8000
