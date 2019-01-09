@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter import StringVar
 import utils
+import constants
 
 class UI(tk.Tk):
     def __init__(self, *args, **kwargs):
@@ -28,24 +29,56 @@ class UI(tk.Tk):
         frame = self.frames[page]
         frame.tkraise()
     def broadcast_action(self, action):
+        decodedAction = utils.decodeDict(action)
         for frame in self.frames:
-            self.frames[frame].process_action(action)
+            self.frames[frame].process_action(decodedAction)
     def send_action(self, action):
-        utils.encodeDict(action)
-        self.actionQueue.put(action)
+        self.actionQueue.put(utils.encodeDict(action))
 
 class LoginPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, controller)
-        a = tk.Label(self ,text="username").grid(row=0,column = 0)
-        b = tk.Label(self ,text="password").grid(row=1,column=0)
-        e = tk.Entry(self).grid(row=0,column=1)
-        f = tk.Entry(self,show="*").grid(row=1,column=1)
-        c = tk.Button(self, text="LOGIN",command=lambda : self.login(e,f,controller)).grid(row=5,column=0)
-    def login(self, username, password, controller):
-        controller.show_frame(MainPage)
+        self.controller = controller
+
+        # Username
+        tk.Label(self, text="Username").grid(row=0, column=0)
+        self.usernameEntry = StringVar()
+        tk.Entry(self, textvariable=self.usernameEntry).grid(row=0, column=1)
+
+        # Password
+        tk.Label(self, text="Password").grid(row=1, column=0)
+        self.passwordEntry = StringVar()
+        tk.Entry(self, show="*", textvariable=self.passwordEntry).grid(row=1, column=1)
+
+        # Error text
+        self.errorText = StringVar()
+        tk.Label(self, textvariable=self.errorText).grid(row=2, column=0)
+
+        # Login button
+        tk.Button(self, text="LOGIN", command=self.login).grid(row=5, column=0)
+
+    def login(self):
+        self.errorText.set('')
+        username = self.usernameEntry.get()
+        password = self.passwordEntry.get()
+        
+        loginAction = {}
+        loginAction[constants.TYPE] = constants.OPEN_CONNECTION
+        loginAction[constants.PAYLOAD] = {
+            constants.USERNAME: username,
+            constants.PASSWORD: password
+        }
+
+        self.controller.send_action(loginAction)
+        
     def process_action(self, action):
-        pass
+        actionType = action[constants.TYPE]
+        actionPayload = action[constants.PAYLOAD]
+        if actionType == constants.RECEIVE_USERS:
+            self.controller.show_frame(MainPage)
+        elif actionType == constants.AUTHENTICATION_FAIL:
+            self.errorText.set(actionPayload[constants.MESSAGE])
+            
 
 class MainPage(tk.Frame):
     def __init__(self, parent, controller):
