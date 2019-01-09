@@ -1,5 +1,7 @@
+import json
+
 def encodeDict(dict):
-  return ''
+  return json.dump(dict)
 
 def decodeDict(str):
   return {}

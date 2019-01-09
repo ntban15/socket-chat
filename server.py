@@ -2,8 +2,10 @@
 
 import socket
 import threading
+
 import Database
-import json
+import constants
+import utils
 
 clients = {}
 MSG_CODE_FORCE_QUIT = 'MSG_CODE_FORCE_QUIT'
@@ -16,42 +18,6 @@ SERVER.bind(ADDR)
 
 # database
 database = Database('database.json')
-
-# client action types
-INIT_THREAD = 'INIT_THREAD'
-SEND_MSG = 'SEND_MSG'
-SEND_MSG_ALL = 'SEND_MSG_ALL'
-CLOSE_CONNECTION = 'CLOSE_CONNECTION'
-OPEN_CONNECTION = 'OPEN_CONNECTION'
-UPDATE_STATUS = 'UPDATE_STATUS'
-
-# server action types
-UPDATE_FRIEND_STATUS = 'UPDATE_FRIEND_STATUS'
-RECEIVE_THREAD_INFO = 'RECEIVE_THREAD_INFO'
-RECEIVE_MSG = 'RECEIVE_MSG'
-RECEIVE_USERS = 'RECEIVE_USERS'
-AUTHENTICATION_FAIL = 'AUTHENTICATION_FAIL'
-
-# database keys
-CHATS = 'chats'
-ALL = 'all'
-USERS = 'users'
-STATUSES = 'statuses'
-
-# dictionary keys
-TYPE = 'type'
-PAYLOAD = 'payload'
-
-SENDER = 'sender'
-RECEIVER = 'receiver'
-USERNAME = 'username'
-PASSWORD = 'password'
-STATUS = 'status'
-IS_ONLINE = 'is_online'
-SENDER = 'sender'
-RECEIVER = 'receiver'
-MESSAGE = 'message'
-IS_CHAT_ALL = 'is_chat_all'
 
 def accept_connections():
   while True:
@@ -72,37 +38,111 @@ def handle_client(client):
     try: 
       action = client.recv(BUFSIZ)
       res_action = {}
-      if action[TYPE] == OPEN_CONNECTION:
-        username = action[PAYLOAD][USERNAME]
-        password = action[PAYLOAD][PASSWORD]
 
+      # OPEN_CONNECTION:
+      # -> 1. RECEIVE_USERS
+      # -> 2. AUTHENTICATION_FAIL
+      if action[constants.TYPE] == constants.OPEN_CONNECTION:
+        username = action[constants.PAYLOAD][constants.USERNAME]
+        password = action[constants.PAYLOAD][constants.PASSWORD]
+
+        # AUTHENTICATED
         if database.authenticate(username, password):
           clients[username] = client
           users = database.get_users()
 
-          res_action[TYPE] = RECEIVE_USERS
-          res_action[PAYLOAD][USERS] = users
+          # After authenticated, user receives a list of users
+          res_action[constants.TYPE] = constants.RECEIVE_USERS
+          res_action[constants.PAYLOAD][constants.USERS] = users
 
-          broadcast(json.dumps(res_action), username=username)
+          broadcast(utils.encodeDict(res_action), username=username)
+        
+        # WRONG PASSWORD
         else:
-          res_action[TYPE] = AUTHENTICATION_FAIL
-          res_action[PAYLOAD][MESSAGE] = 'Wrong password'
-          broadcast(json.dumps(res_action), client=client)
+          res_action[constants.TYPE] = constants.AUTHENTICATION_FAIL
+          res_action[constants.PAYLOAD][constants.MESSAGE] = 'Wrong password'
+          
+          broadcast(utils.encodeDict(res_action), client=client)
           client.close()
 
+      # CLOSE_CONNECTION -> no action sent to client ???
+      elif action[constants.TYPE] == constants.CLOSE_CONNECTION:
+        username = action[constants.PAYLOAD][constants.USERNAME]
 
-      elif action[TYPE] == INIT_THREAD:
-        user1 = action[PAYLOAD][SENDER]
-        user2 = action[PAYLOAD][RECEIVER]
-        chat_id = database.chat_id_generator(user1, user2)
+        # update online status to offline if a user's connection is closed
+        database.update_online_status(username, False)
 
+        # close client socket
+        client.close()
+        # delete client from client dictionary
+        del clients[username]
+
+        # target là gì ??? all in clients ???
+        broadcast('%s has leaved the room' % str(username))
+
+      # INIT_THREAD -> RECEIVE_THREAD_INFO
+      elif action[constants.TYPE] == constants.INIT_THREAD:
+        sender = action[constants.PAYLOAD][constants.SENDER]
+        receiver = action[constants.PAYLOAD][constants.RECEIVER]
+        chat_id = database.chat_id_generator(sender, receiver)
+
+        # get all messages of thread
         messages = database.get_messages(chat_id)
+        # get user2's status
         friend_status = database.get_status(user2)
 
+        res_action[constants.TYPE] = constants.RECEIVE_THREAD_INFO
+        res_action[constants.PAYLOAD][constants.MESSAGES] = messages
+        res_action[constants.PAYLOAD][constants.FRIEND_STATUS] = friend_status
 
+        broadcast(utils.encodeDict(res_action), target=sender)
 
+      # SEND_MSG -> RECEIVE_MSG
+      elif action[constants.TYPE] == constants.SEND_MSG:
+        sender = action[constants.PAYLOAD][constants.SENDER]
+        receiver = action[constants.PAYLOAD][constants.RECEIVER]
+        message = action[constants.PAYLOAD][constants.MESSAGE]
 
-    
+        # add message to a thread
+        database.add_message(message, sender, receiver)
+
+        res_action[constants.TYPE] = constants.RECEIVE_MSG
+        res_action[constants.PAYLOAD][constants.SENDER] = sender
+        res_action[constants.PAYLOAD][constants.MESSAGE] = message
+        res_action[constants.PAYLOAD][constants.IS_CHAT_ALL] = False
+
+        broadcast(utils.encodeDict(res_action), target=receiver)
+
+      # SEND_MSG_ALL -> RECEIVE_MSG
+      elif action[constants.TYPE] == constants.SEND_MSG_ALL:
+        sender = action[constants.PAYLOAD][constants.SENDER]
+        message = action[constants.PAYLOAD][constants.MESSAGE]
+
+        # add message to a thread named "all"
+        database.add_message_all(message, sender, receiver)
+
+        res_action[constants.TYPE] = constants.RECEIVE_MSG
+        res_action[constants.PAYLOAD][constants.SENDER] = sender
+        res_action[constants.PAYLOAD][constants.MESSAGE] = message
+        res_action[constants.PAYLOAD][constants.IS_CHAT_ALL] = True
+
+        # target là gì ??? all in clients ???
+        broadcast(utils.encodeDict(res_action))
+
+      # UPDATE_STATUS -> UPDATE_FRIEND_STATUS
+      elif action[constants.TYPE] == constants.UPDATE_STATUS
+        username = action[constants.PAYLOAD][constants.USERNAME]
+        status = action[constants.PAYLOAD][constants.STATUS]
+
+        # update user's status
+        database.update_status(username, status)
+
+        res_action[constants.TYPE] = constants.UPDATE_FRIEND_STATUS
+        res_action[constants.PAYLOAD][username] = username
+        res_action[constants.PAYLOAD][constants.STATUS] = status
+
+        # target là gì ??? all in clients ???
+        broadcast(utils.encodeDict(res_action))
 
       # msg = client.recv(BUFSIZ)
       # if msg != bytes('/quit', 'utf-8'):
