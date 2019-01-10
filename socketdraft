@@ -80,7 +80,8 @@
   type: 'UPDATE_FRIEND_STATUS',
   payload: {
     username: '',
-    status: ''
+    status: '',
+    is_online: true
   }
 }
 
