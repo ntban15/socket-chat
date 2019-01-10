@@ -5,7 +5,7 @@ class Database:
     # doc file 
     self.database = {}
 
-  def chat_id_generator(username1, username2):
+  def chat_id_generator(self, username1, username2):
     if (username1 > username2):
       return username2 + '-' + username1
     return username1 + '-' + username2
@@ -42,8 +42,8 @@ class Database:
     self.database[constants.STATUSES][username][constants.IS_ONLINE] = online_status
 
   def authenticate(self, username, password):
-    if (username in self.database[constants.USER]):
-      if self.database[constants.USER][username] == password:
+    if (username in self.database[constants.USERS]):
+      if self.database[constants.USERS][username] == password:
         self.update_online_status(username, True)
         return True
       return False

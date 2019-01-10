@@ -17,7 +17,7 @@ SERVER = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 SERVER.bind(ADDR)
 
 # database
-database = Database('database.json')
+database = Database.Database('database.json')
 
 def accept_connections():
   while True:
@@ -104,7 +104,7 @@ def handle_client(client):
         # get all messages of thread
         messages = database.get_messages(chat_id)
         # get user2's status
-        friend_status = database.get_status(user2)
+        friend_status = database.get_status(receiver)
 
         res_action[constants.TYPE] = constants.RECEIVE_THREAD_INFO
         res_action[constants.PAYLOAD][constants.MESSAGES] = messages
@@ -134,7 +134,7 @@ def handle_client(client):
         message = action[constants.PAYLOAD][constants.MESSAGE]
 
         # add message to a thread named "all"
-        database.add_message_all(message, sender, receiver)
+        database.add_message_all(message, sender)
 
         res_action[constants.TYPE] = constants.RECEIVE_MSG
         res_action[constants.PAYLOAD][constants.SENDER] = sender
@@ -160,14 +160,16 @@ def handle_client(client):
 
     # TODO
     except KeyboardInterrupt:
-      broadcast(MSG_CODE_FORCE_QUIT)
       break
 
-def broadcast(msg, client, target):
+def broadcast(msg, **kwargs):
+  client = kwargs['client']
+  target = kwargs['target']
+
   if client:
     client.send(bytes(msg, 'utf-8'))
   elif target:
-    if target == 'all'
+    if target == 'all':
       for client in clients:
         client.send(bytes(msg, 'utf-8'))
     else:   
