@@ -17,12 +17,12 @@
       }
     ]
   },
-  statuses: [
+  statuses: {
     john_smith: {
       is_online: false,
       status: 'Haha'
     }
-  ]
+  }
 }
 
 

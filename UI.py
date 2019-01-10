@@ -6,7 +6,7 @@ import utils
 import constants
 
 class UI(tk.Tk):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, actionQueue, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         container = tk.Frame(self)
 
@@ -14,7 +14,7 @@ class UI(tk.Tk):
         container.grid_columnconfigure(0, weight=1)
 
         self.username = ''
-        self.actionQueue = kwargs['actionQueue']
+        self.actionQueue = actionQueue
         self.frames = {}
 
         for page in (LoginPage, MainPage, ChatPage):
@@ -123,7 +123,7 @@ class MainPage(tk.Frame):
         self.friendList = StringVar(value=[])
         self.friendListBox = tk.Listbox(self, listvariable=self.friendList, height=30)
         self.friendListBox.grid(column=0, row=4, columnspan=2)
-        self.friendListBox.bind('<ListboxSelect>', self.select_friend)
+        self.friendListBox.bind('<<ListboxSelect>>', self.select_friend)
 
     def select_friend(self):
         selection = self.friendListBox.curselection()

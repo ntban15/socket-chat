@@ -3,8 +3,14 @@ import constants
 
 class Database:
   def __init__(self, file_name):
-    with open(file_name, 'r') as file:
-      self.database = utils.decodeDict(file)
+    self.database = {
+      'users': {},
+      'chats': {},
+      'statuses': {}
+    }
+
+    # with open(file_name, 'r') as file:
+    #   self.database = utils.decodeDict(file)
 
   def chat_id_generator(self, username1, username2):
     if (username1 > username2):
@@ -18,7 +24,7 @@ class Database:
     return []
 
   def get_users(self):
-    return self.database[constants.USERS].keys()
+    return list(self.database[constants.USERS].keys())
 
   def get_status(self, username):
     return self.database[constants.STATUSES][username]

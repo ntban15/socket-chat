@@ -21,6 +21,7 @@ def receive(outputMsg):
     try:
       msg = CLIENT.recv(BUFSIZ).decode('utf-8')
       outputMsg(msg)
+      print(msg)
       if msg == MSG_CODE_QUIT:
         print('Connection to server closed')
         break
@@ -39,7 +40,7 @@ def send(inputQueue):
 if __name__ == '__main__':
   inputQueue = Queue()
 
-  ui = UI.UI(actionQueue=inputQueue)
+  ui = UI.UI(inputQueue)
 
   def receiveMsg(msg):
     ui.broadcast_action(msg)
