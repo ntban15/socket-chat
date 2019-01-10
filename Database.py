@@ -37,7 +37,17 @@ class Database:
     return self.database[constants.STATUSES][username]
 
   def add_message(self, message, username1, username2):
-    self.database[constants.CHATS][self.chat_id_generator(username1, username2)] = message
+    chat_id = self.chat_id_generator(username1, username2)
+    message_entry = {
+      constants.SENDER: username1,
+      constants.RECEIVER: username2,
+      constants.MESSAGE: message
+    }
+
+    if chat_id in self.database[constants.CHATS]:
+      self.database[constants.CHATS][chat_id].append(message_entry)
+    else:
+      self.database[constants.CHATS][chat_id] = [message_entry]
 
   def add_message_all(self, message, username):
     new_entry = {}

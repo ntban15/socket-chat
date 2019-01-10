@@ -194,7 +194,7 @@ def broadcast(msg, client, target):
     if target == 'all':
       for client in clients.values():
         client.send(bytes(msg, 'utf-8'))
-    else:
+    elif target in clients:
       client_target = clients[target]
       client_target.send(bytes(msg, 'utf-8'))
 
