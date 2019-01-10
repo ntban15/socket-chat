@@ -17,7 +17,7 @@ class UI(tk.Tk):
         self.actionQueue = kwargs['actionQueue']
         self.frames = {}
 
-        for page in (LoginPage, MainPage):
+        for page in (LoginPage, MainPage, ChatPage):
 
             frame = page(container, self)
 
@@ -26,6 +26,7 @@ class UI(tk.Tk):
             frame.grid(row=0, column=0, sticky="nsew")
 
         self.show_frame(LoginPage)
+
     def show_frame(self, page):
         frame = self.frames[page]
         frame.tkraise()
@@ -43,6 +44,15 @@ class UI(tk.Tk):
 
     def get_username(self):
         return self.username
+
+    def set_receiver(self, username):
+        self.receiver = username
+
+    def get_receiver(self):
+        return self.receiver
+
+    def quit(self):
+        pass
 
 class LoginPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -116,11 +126,6 @@ class MainPage(tk.Frame):
         self.friendListBox.grid(column=0, row=4, columnspan=2)
         self.friendListBox.bind('<ListboxSelect>', self.select_friend)
 
-        # friend status
-        tk.Label(self, text='Friend\'s status').grid(column=0, row=5)
-        self.friendStatus = tk.Text(self, width=50, height=4, state=tk.DISABLED)
-        self.friendStatus.grid(column=1, row=5)
-
     def select_friend(self):
         selection = self.friendListBox.curselection()
         if len(selection) == 1:
@@ -137,6 +142,7 @@ class MainPage(tk.Frame):
             # TODO: Init thread to ALL
 
             self.controller.send_action(initThreadAction)
+            self.controller.show_frame(ChatPage)
             
 
     def update_status(self):
@@ -162,23 +168,80 @@ class MainPage(tk.Frame):
                 self.usernameText.insert(tk.END, self.controller.get_username())
                 self.usernameText.configure(state=tk.DISABLED)
             self.friendList.set(actionPayload[constants.USERS])
-        elif actionType == constants.RECEIVE_THREAD_INFO:
+
+class ChatPage(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self, controller)
+        self.controller = controller
+
+        # back button
+        tk.Button(self, text='Back', command=lambda : controller.show_frame(MainPage)).grid(column=1, row=2)
+        
+        # friend name
+        self.friendName = StringVar()
+        tk.Label(self, textvariable=self.friendName).grid(column=0, row=4)
+
+        # friend status
+        tk.Label(self, text='Friend\'s status').grid(column=0, row=5)
+        self.friendStatus = tk.Text(self, width=50, height=4, state=tk.DISABLED)
+        self.friendStatus.grid(column=1, row=5)
+
+        # the chat input
+        self.chatInput = StringVar()
+        chatEntry = tk.Entry(self, width=70, textvariable=self.chatInput)
+        chatEntry.grid(column=0, row=2)
+
+        # the button
+        tk.Button(self, text='Send', command=self.sendMsg).grid(column=1, row=2)
+
+        # the chat display
+        self.chatDisplay = tk.Text(self, width=100, height=50)
+        
+        self.chatDisplay.grid(column=0, row=1, columnspan=2, sticky=(tk.N,))
+        
+
+    def sendMsg(self):
+        msg = str(self.chatInput.get())
+        self.chatInput.set('')
+
+        action = {}
+        action[constants.TYPE] = constants.SEND_MSG_ALL
+        action[constants.PAYLOAD][constants.SENDER] = self.controller.get_username()
+        action[constants.PAYLOAD][constants.MESSAGE] = msg
+        if (self.controller.get_receiver() != 'all'):
+            action[constants.PAYLOAD][constants.RECEIVER] = self.controller.get_receiver()
+            action[constants.TYPE] = constants.SEND_MSG
+
+        self.controller.send_action(action)
+
+    def process_action(self, action):
+        if action[constants.TYPE] == constants.RECEIVE_MSG:
+            senderName = action[constants.PAYLOAD][constants.SENDER]
+            msg = action[constants.PAYLOAD][constants.MESSAGE]
+
+            if (not action[constants.PAYLOAD][constants.IS_CHAT_ALL] and senderName == self.controller.get_receiver()):
+                self.chatDisplay.insert(tk.END, msg + '\n')
+
+        elif action[constants.TYPE] == constants.RECEIVE_THREAD_INFO:
+            if (action[constants.PAYLOAD][constants.SENDER] == self.controller.get_username() or action[constants.PAYLOAD][constants.SENDER] == self.controller.get_receiver()):
+                for message in action[constants.PAYLOAD][constants.MESSAGES]:
+                    self.chatDisplay.insert(tk.END, message[constants.SENDER] + ': ' + message[constants.MESSAGE] + '\n')
+
             isOnline = 'Offline'
-            if actionPayload[constants.FRIEND_STATUS][constants.IS_ONLINE]:
+            if action[constants.PAYLOAD][constants.FRIEND_STATUS][constants.IS_ONLINE]:
                 isOnline = 'Online'
             
             self.friendStatus.configure(state=tk.NORMAL)
             self.friendStatus.delete(1.0, tk.END)
-            self.friendStatus.insert(tk.END, isOnline + ' - ' + actionPayload[constants.FRIEND_STATUS][constants.STATUS])
+            self.friendStatus.insert(tk.END, isOnline + ' - ' + action[constants.PAYLOAD][constants.FRIEND_STATUS][constants.STATUS])
             self.friendStatus.configure(state=tk.DISABLED)
-        elif actionType == constants.UPDATE_FRIEND_STATUS:
-            friendUsername = actionPayload[constants.USERNAME]
 
-            if friendUsername == self.currentFriend:
+        elif action[constants.TYPE] == constants.UPDATE_FRIEND_STATUS:
+            if (action[constants.PAYLOAD][constants.USERNAME] == self.controller.get_receiver()):
                 isOnline = 'Offline'
-                if actionPayload[constants.IS_ONLINE]:
+                if action[constants.PAYLOAD][constants.IS_ONLINE]:
                     isOnline = 'Online'
                 self.friendStatus.configure(state=tk.NORMAL)
                 self.friendStatus.delete(1.0, tk.END)
-                self.friendStatus.insert(tk.END, isOnline + ' - ' + actionPayload[constants.STATUS])
+                self.friendStatus.insert(tk.END, isOnline + ' - ' + action[constants.PAYLOAD][constants.STATUS])
                 self.friendStatus.configure(state=tk.DISABLED)
