@@ -12,6 +12,10 @@ class Database:
         'abc': {
           'is_online': False,
           'status': ''
+        },
+        'all': {
+          'is_online': True,
+          'status': ''
         }
       }
     }
@@ -20,6 +24,8 @@ class Database:
     #   self.database = utils.decodeDict(file)
 
   def chat_id_generator(self, username1, username2):
+    if username2 == 'all':
+      return username2
     if (username1 > username2):
       return username2 + '-' + username1
     return username1 + '-' + username2
@@ -50,11 +56,14 @@ class Database:
       self.database[constants.CHATS][chat_id] = [message_entry]
 
   def add_message_all(self, message, username):
-    new_entry = {}
-    new_entry[constants.SENDER] = username
-    new_entry[constants.MESSAGE] = message
-
-    self.database[constants.CHATS][constants.ALL].push(new_entry)
+    message_entry = {
+      constants.SENDER: username,
+      constants.MESSAGE: message
+    }
+    if constants.ALL in self.database[constants.CHATS]:
+      self.database[constants.CHATS][constants.ALL].append(message_entry)
+    else:
+      self.database[constants.CHATS][constants.ALL] = [message_entry]
 
   def register(self, username, password):
     self.database[constants.USERS][username] = password

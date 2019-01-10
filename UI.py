@@ -124,6 +124,7 @@ class MainPage(tk.Frame):
         self.friendList = tk.Listbox(self, height=30)
         self.friendList.grid(column=0, row=4, columnspan=2)
         self.friendList.bind('<<ListboxSelect>>', self.select_friend)
+        self.friendList.insert(tk.END, ('all',))
 
     def select_friend(self, event):
         selection = self.friendList.curselection()
@@ -240,10 +241,15 @@ class ChatPage(tk.Frame):
             senderName = action[constants.PAYLOAD][constants.SENDER]
             msg = action[constants.PAYLOAD][constants.MESSAGE]
 
-            if (not action[constants.PAYLOAD][constants.IS_CHAT_ALL]):
+            # Case dang chat cho 1 thg dang bat tab all => hien lun tin nhan o tab all, 
+            # Case dang chat cho mot thang dang o main => bi duplicate 
+            # Case dang chat cho all => bi duplicate tin nhan vi vua insert luc gui va insert luc nhan
+            if ((not action[constants.PAYLOAD][constants.IS_CHAT_ALL] and senderName == self.controller.get_receiver()) or 
+            (action[constants.PAYLOAD][constants.IS_CHAT_ALL] and self.controller.get_receiver() == 'all' and senderName != self.controller.get_username())):
                 self.chatDisplay.configure(state=tk.NORMAL)
                 self.chatDisplay.insert(tk.END, senderName + ': ' + msg + '\n')
                 self.chatDisplay.configure(state=tk.DISABLED)
+
 
         elif action[constants.TYPE] == constants.RECEIVE_THREAD_INFO:
             self.friendName.set(self.controller.get_receiver())
