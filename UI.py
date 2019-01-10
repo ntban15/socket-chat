@@ -174,7 +174,7 @@ class MainPage(tk.Frame):
         if actionType == constants.NEW_USER:
             newUserName = actionPayload[constants.USERNAME]
             if newUserName != self.controller.get_username():
-                self.friendList.insert(tk.END, newUserName)
+                self.friendList.insert(tk.END, (newUserName,))
 
 class ChatPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -202,8 +202,7 @@ class ChatPage(tk.Frame):
         tk.Button(self, text='Send', command=self.sendMsg).grid(column=1, row=2)
 
         # the chat display
-        self.chatDisplay = tk.Text(self, width=100, height=50)
-        
+        self.chatDisplay = tk.Text(self, width=100, height=50, state=tk.DISABLED)
         self.chatDisplay.grid(column=0, row=1, columnspan=2, sticky=(tk.N,))
         
 
@@ -211,11 +210,15 @@ class ChatPage(tk.Frame):
         msg = str(self.chatInput.get())
         self.chatInput.set('')
 
+        self.chatDisplay.configure(state=tk.NORMAL)
+        self.chatDisplay.insert(tk.END, self.controller.get_username() + ': ' + msg + '\n')
+        self.chatDisplay.configure(state=tk.DISABLED)
+
         action = {
             constants.TYPE: constants.SEND_MSG_ALL,
             constants.PAYLOAD: {
                 constants.SENDER: self.controller.get_username(),
-                constants.MESSAGE: self.controller.get_receiver()
+                constants.MESSAGE: msg
             }
         }
 
@@ -230,8 +233,10 @@ class ChatPage(tk.Frame):
             senderName = action[constants.PAYLOAD][constants.SENDER]
             msg = action[constants.PAYLOAD][constants.MESSAGE]
 
-            if (not action[constants.PAYLOAD][constants.IS_CHAT_ALL] and senderName == self.controller.get_receiver()):
-                self.chatDisplay.insert(tk.END, msg + '\n')
+            if (not action[constants.PAYLOAD][constants.IS_CHAT_ALL]):
+                self.chatDisplay.configure(state=tk.NORMAL)
+                self.chatDisplay.insert(tk.END, senderName + ': ' + msg + '\n')
+                self.chatDisplay.configure(state=tk.DISABLED)
 
         elif action[constants.TYPE] == constants.RECEIVE_THREAD_INFO:
             for message in action[constants.PAYLOAD][constants.MESSAGES]:
