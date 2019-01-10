@@ -41,6 +41,10 @@ class Database:
 
   def register(self, username, password):
     self.database[constants.USERS][username] = password
+    self.database[constants.STATUSES][username] = {
+      constants.IS_ONLINE: True,
+      constants.STATUS: ''
+    }
 
   def update_status(self, username, status):
     self.database[constants.STATUSES][username][constants.STATUS] = status

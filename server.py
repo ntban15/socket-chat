@@ -66,19 +66,25 @@ def handle_client(client):
           
           if not is_new_user:
             res_action2[constants.TYPE] = constants.UPDATE_FRIEND_STATUS
-            res_action2[constants.PAYLOAD][constants.USERNAME] = username
-            res_action2[constants.PAYLOAD][constants.STATUS] = status
-            res_action2[constants.PAYLOAD][constants.IS_ONLINE] = True
+            res_action2[constants.PAYLOAD] = {
+              constants.USERNAME: username,
+              constants.STATUS: status,
+              constants.IS_ONLINE: True
+            }
             broadcast(utils.encodeDict(res_action2), None, 'all')
           else:
             res_action2[constants.TYPE] = constants.NEW_USER
-            res_action2[constants.PAYLOAD][constants.USERNAME] = username
+            res_action2[constants.PAYLOAD] = {
+              constants.USERNAME: username
+            }
             broadcast(utils.encodeDict(res_action2), None, 'all')
         
         # WRONG PASSWORD
         else:
           res_action[constants.TYPE] = constants.AUTHENTICATION_FAIL
-          res_action[constants.PAYLOAD][constants.MESSAGE] = 'Wrong password'
+          res_action[constants.PAYLOAD] = {
+            constants.MESSAGE: 'Wrong password'
+          }
           
           broadcast(utils.encodeDict(res_action), client, None)
           client.close()
@@ -99,9 +105,11 @@ def handle_client(client):
         
         # res_action
         res_action[constants.TYPE] = constants.UPDATE_FRIEND_STATUS
-        res_action[constants.PAYLOAD][constants.USERNAME] = username
-        res_action[constants.PAYLOAD][constants.STATUS] = status
-        res_action[constants.PAYLOAD][constants.IS_ONLINE] = False
+        res_action[constants.PAYLOAD] = {
+          constants.USERNAME: username,
+          constants.STATUS: status,
+          constants.IS_ONLINE: False
+        }
 
         broadcast(utils.encodeDict(res_action), None, 'all')
 
@@ -117,8 +125,10 @@ def handle_client(client):
         friend_status = database.get_status(receiver)
 
         res_action[constants.TYPE] = constants.RECEIVE_THREAD_INFO
-        res_action[constants.PAYLOAD][constants.MESSAGES] = messages
-        res_action[constants.PAYLOAD][constants.FRIEND_STATUS] = friend_status
+        res_action[constants.PAYLOAD]= {
+          constants.MESSAGES: messages,
+          constants.FRIEND_STATUS: friend_status
+        }
 
         broadcast(utils.encodeDict(res_action), None, sender)
 
@@ -132,9 +142,11 @@ def handle_client(client):
         database.add_message(message, sender, receiver)
 
         res_action[constants.TYPE] = constants.RECEIVE_MSG
-        res_action[constants.PAYLOAD][constants.SENDER] = sender
-        res_action[constants.PAYLOAD][constants.MESSAGE] = message
-        res_action[constants.PAYLOAD][constants.IS_CHAT_ALL] = False
+        res_action[constants.PAYLOAD] = {
+          constants.SENDER: sender,
+          constants.MESSAGE: message,
+          constants.IS_CHAT_ALL: False
+        }
 
         broadcast(utils.encodeDict(res_action), None, receiver)
 
@@ -147,9 +159,11 @@ def handle_client(client):
         database.add_message_all(message, sender)
 
         res_action[constants.TYPE] = constants.RECEIVE_MSG
-        res_action[constants.PAYLOAD][constants.SENDER] = sender
-        res_action[constants.PAYLOAD][constants.MESSAGE] = message
-        res_action[constants.PAYLOAD][constants.IS_CHAT_ALL] = True
+        res_action[constants.PAYLOAD] = {
+          constants.SENDER: sender,
+          constants.MESSAGE: message,
+          constants.IS_CHAT_ALL: True
+        }
 
         broadcast(utils.encodeDict(res_action), None, 'all')
 
@@ -162,9 +176,11 @@ def handle_client(client):
         database.update_status(username, status)
 
         res_action[constants.TYPE] = constants.UPDATE_FRIEND_STATUS
-        res_action[constants.PAYLOAD][constants.USERNAME] = username
-        res_action[constants.PAYLOAD][constants.STATUS] = status
-        res_action[constants.PAYLOAD][constants.IS_ONLINE] = True
+        res_action[constants.PAYLOAD] = {
+          constants.USERNAME: username,
+          constants.STATUS: status,
+          constants.IS_ONLINE: True
+        }
 
         broadcast(utils.encodeDict(res_action), None, 'all')
 
@@ -177,7 +193,7 @@ def broadcast(msg, client, target):
     client.send(bytes(msg, 'utf-8'))
   elif target:
     if target == 'all':
-      for client in clients:
+      for client in clients.values():
         client.send(bytes(msg, 'utf-8'))
     else:
       client_target = clients[target]
