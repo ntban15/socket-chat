@@ -1,9 +1,10 @@
+import utils
 import constants
 
 class Database:
   def __init__(self, file_name):
-    # doc file 
-    self.database = {}
+    with open(file_name, 'r') as file:
+      self.database = utils.decodeDict(file)
 
   def chat_id_generator(self, username1, username2):
     if (username1 > username2):
@@ -45,8 +46,8 @@ class Database:
     if (username in self.database[constants.USERS]):
       if self.database[constants.USERS][username] == password:
         self.update_online_status(username, True)
-        return True
-      return False
+        return True, False
+      return False, False
     
     self.register(username, password)
-    return True
+    return True, True

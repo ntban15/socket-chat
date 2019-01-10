@@ -44,7 +44,8 @@ def handle_client(client):
         password = action[constants.PAYLOAD][constants.PASSWORD]
 
         # AUTHENTICATED
-        if database.authenticate(username, password):
+        authenticated, is_new_user = database.authenticate(username, password)
+        if authenticated:
           clients[username] = client
           users = database.get_users()
 
@@ -58,12 +59,17 @@ def handle_client(client):
           # 2. notify other
           res_action2 = {}
           status = database.get_status(username)[constants.STATUS]
-
-          res_action2[constants.TYPE] = constants.UPDATE_FRIEND_STATUS
-          res_action2[constants.PAYLOAD][username] = username
-          res_action2[constants.PAYLOAD][constants.STATUS] = status
-          res_action2[constants.PAYLOAD][constants.IS_ONLINE] = True
-          broadcast(utils.encodeDict(res_action2), target='all')
+          
+          if not is_new_user:
+            res_action2[constants.TYPE] = constants.UPDATE_FRIEND_STATUS
+            res_action2[constants.PAYLOAD][constants.USERNAME] = username
+            res_action2[constants.PAYLOAD][constants.STATUS] = status
+            res_action2[constants.PAYLOAD][constants.IS_ONLINE] = True
+            broadcast(utils.encodeDict(res_action2), target='all')
+          else:
+            res_action2[constants.TYPE] = constants.NEW_USER
+            res_action2[constants.PAYLOAD][constants.USERNAME] = username
+            broadcast(utils.encodeDict(res_action2), target='all')
         
         # WRONG PASSWORD
         else:
@@ -89,7 +95,7 @@ def handle_client(client):
         
         # res_action
         res_action[constants.TYPE] = constants.UPDATE_FRIEND_STATUS
-        res_action[constants.PAYLOAD][username] = username
+        res_action[constants.PAYLOAD][constants.USERNAME] = username
         res_action[constants.PAYLOAD][constants.STATUS] = status
         res_action[constants.PAYLOAD][constants.IS_ONLINE] = False
 
@@ -152,7 +158,7 @@ def handle_client(client):
         database.update_status(username, status)
 
         res_action[constants.TYPE] = constants.UPDATE_FRIEND_STATUS
-        res_action[constants.PAYLOAD][username] = username
+        res_action[constants.PAYLOAD][constants.USERNAME] = username
         res_action[constants.PAYLOAD][constants.STATUS] = status
         res_action[constants.PAYLOAD][constants.IS_ONLINE] = True
 
@@ -172,7 +178,7 @@ def broadcast(msg, **kwargs):
     if target == 'all':
       for client in clients:
         client.send(bytes(msg, 'utf-8'))
-    else:   
+    else:
       client_target = clients[target]
       client_target.send(bytes(msg, 'utf-8'))
 
