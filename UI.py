@@ -182,11 +182,12 @@ class ChatPage(tk.Frame):
         self.controller = controller
 
         # back button
-        tk.Button(self, text='Back', command=lambda : controller.show_frame(MainPage)).grid(column=1, row=2)
+        tk.Button(self, text='Back', command=self.back).grid(column=1, row=3)
         
         # friend name
         self.friendName = StringVar()
-        tk.Label(self, textvariable=self.friendName).grid(column=0, row=4)
+        tk.Label(self, text='Friend name: ').grid(column=0, row=0)
+        tk.Label(self, textvariable=self.friendName).grid(column=1, row=0)
 
         # friend status
         tk.Label(self, text='Friend\'s status').grid(column=0, row=5)
@@ -205,6 +206,12 @@ class ChatPage(tk.Frame):
         self.chatDisplay = tk.Text(self, width=100, height=50, state=tk.DISABLED)
         self.chatDisplay.grid(column=0, row=1, columnspan=2, sticky=(tk.N,))
         
+
+    def back(self):
+        self.chatDisplay.configure(state=tk.NORMAL)
+        self.chatDisplay.delete(1.0, tk.END)
+        self.chatDisplay.configure(state=tk.DISABLED)
+        self.controller.show_frame(MainPage)
 
     def sendMsg(self):
         msg = str(self.chatInput.get())
@@ -238,7 +245,9 @@ class ChatPage(tk.Frame):
                 self.chatDisplay.insert(tk.END, senderName + ': ' + msg + '\n')
                 self.chatDisplay.configure(state=tk.DISABLED)
 
-        elif action[constants.TYPE] == constants.RECEIVE_THREAD_INFO:      
+        elif action[constants.TYPE] == constants.RECEIVE_THREAD_INFO:
+            self.friendName.set(self.controller.get_receiver())
+
             for message in action[constants.PAYLOAD][constants.MESSAGES]:
                 self.chatDisplay.configure(state=tk.NORMAL)
                 self.chatDisplay.insert(tk.END, message[constants.SENDER] + ': ' + message[constants.MESSAGE] + '\n')
