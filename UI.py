@@ -211,10 +211,14 @@ class ChatPage(tk.Frame):
         msg = str(self.chatInput.get())
         self.chatInput.set('')
 
-        action = {}
-        action[constants.TYPE] = constants.SEND_MSG_ALL
-        action[constants.PAYLOAD][constants.SENDER] = self.controller.get_username()
-        action[constants.PAYLOAD][constants.MESSAGE] = msg
+        action = {
+            constants.TYPE: constants.SEND_MSG_ALL,
+            constants.PAYLOAD: {
+                constants.SENDER: self.controller.get_username(),
+                constants.MESSAGE: self.controller.get_receiver()
+            }
+        }
+
         if (self.controller.get_receiver() != 'all'):
             action[constants.PAYLOAD][constants.RECEIVER] = self.controller.get_receiver()
             action[constants.TYPE] = constants.SEND_MSG
