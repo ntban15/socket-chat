@@ -105,7 +105,6 @@ class MainPage(tk.Frame):
         tk.Frame.__init__(self, controller)
         self.controller = controller
         self.isInitialized = False
-        self.currentFriend = ''
 
         self.usernameText = tk.Text(self, width=50, state=tk.DISABLED)
         tk.Label(self, text='Name').grid(column=0, row=0)
@@ -130,13 +129,13 @@ class MainPage(tk.Frame):
         selection = self.friendListBox.curselection()
         if len(selection) == 1:
             index = selection[0]
-            self.currentFriend = self.friendList.get()[index]
+            self.controller.set_receiver(self.friendList.get()[index])
 
             initThreadAction = {}
             initThreadAction[constants.TYPE] = constants.INIT_THREAD
             initThreadAction[constants.PAYLOAD] = {
                 constants.SENDER: self.controller.get_username(),
-                constants.RECEIVER: self.currentFriend
+                constants.RECEIVER: self.controller.get_receiver()
             }
 
             # TODO: Init thread to ALL
