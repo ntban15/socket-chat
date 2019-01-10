@@ -81,6 +81,7 @@
   payload: {
     username: '',
     status: ''
+    is_online: True
   }
 }
 

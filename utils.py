@@ -1,7 +1,7 @@
 import json
 
 def encodeDict(dict):
-  return json.dump(dict)
+  return json.dumps(dict)
 
 def decodeDict(str):
-  return {}
+  return json.loads(str)

@@ -29,14 +29,11 @@ def accept_connections():
       break
 
 def handle_client(client):
-  # client.send(bytes('Welcome to my chat app. What is your name?', 'utf-8'))
-  # name = client.recv(BUFSIZ).decode('utf-8')
-  # client.send(bytes('Type /quit if you want to exit the chat app', 'utf-8'))
-  # clients[client] = name
-
   while True:
     try: 
-      action = client.recv(BUFSIZ)
+      _action = client.recv(BUFSIZ).decode('utf-8')
+      action = utils.decodeDict(_action)
+      
       res_action = {}
 
       # OPEN_CONNECTION:
@@ -51,11 +48,22 @@ def handle_client(client):
           clients[username] = client
           users = database.get_users()
 
-          # After authenticated, user receives a list of users
+          # After authenticated
+          # 1. user receives a list of users
           res_action[constants.TYPE] = constants.RECEIVE_USERS
           res_action[constants.PAYLOAD][constants.USERS] = users
 
-          broadcast(utils.encodeDict(res_action), username=username)
+          broadcast(utils.encodeDict(res_action), target=username)
+
+          # 2. notify other
+          res_action2 = {}
+          status = database.get_status(username)[constants.STATUS]
+
+          res_action2[constants.TYPE] = constants.UPDATE_FRIEND_STATUS
+          res_action2[constants.PAYLOAD][username] = username
+          res_action2[constants.PAYLOAD][constants.STATUS] = status
+          res_action2[constants.PAYLOAD][constants.IS_ONLINE] = True
+          broadcast(utils.encodeDict(res_action2), target='all')
         
         # WRONG PASSWORD
         else:
@@ -71,14 +79,21 @@ def handle_client(client):
 
         # update online status to offline if a user's connection is closed
         database.update_online_status(username, False)
+        # get user's status from database
+        status = database.get_status(username)[constants.STATUS]
 
         # close client socket
         client.close()
         # delete client from client dictionary
         del clients[username]
+        
+        # res_action
+        res_action[constants.TYPE] = constants.UPDATE_FRIEND_STATUS
+        res_action[constants.PAYLOAD][username] = username
+        res_action[constants.PAYLOAD][constants.STATUS] = status
+        res_action[constants.PAYLOAD][constants.IS_ONLINE] = False
 
-        # target là gì ??? all in clients ???
-        broadcast('%s has leaved the room' % str(username))
+        broadcast(utils.encodeDict(res_action), target='all')
 
       # INIT_THREAD -> RECEIVE_THREAD_INFO
       elif action[constants.TYPE] == constants.INIT_THREAD:
@@ -126,11 +141,10 @@ def handle_client(client):
         res_action[constants.PAYLOAD][constants.MESSAGE] = message
         res_action[constants.PAYLOAD][constants.IS_CHAT_ALL] = True
 
-        # target là gì ??? all in clients ???
-        broadcast(utils.encodeDict(res_action))
+        broadcast(utils.encodeDict(res_action), target='all')
 
       # UPDATE_STATUS -> UPDATE_FRIEND_STATUS
-      elif action[constants.TYPE] == constants.UPDATE_STATUS
+      elif action[constants.TYPE] == constants.UPDATE_STATUS:
         username = action[constants.PAYLOAD][constants.USERNAME]
         status = action[constants.PAYLOAD][constants.STATUS]
 
@@ -140,26 +154,25 @@ def handle_client(client):
         res_action[constants.TYPE] = constants.UPDATE_FRIEND_STATUS
         res_action[constants.PAYLOAD][username] = username
         res_action[constants.PAYLOAD][constants.STATUS] = status
+        res_action[constants.PAYLOAD][constants.IS_ONLINE] = True
 
-        # target là gì ??? all in clients ???
-        broadcast(utils.encodeDict(res_action))
+        broadcast(utils.encodeDict(res_action), target='all')
 
-      # msg = client.recv(BUFSIZ)
-      # if msg != bytes('/quit', 'utf-8'):
-      #   broadcast(name + ': ' + msg.decode('utf-8'))
-      # else:
-      #   client.send(msg)
-      #   client.close()
-      #   del clients[client]
-      #   broadcast('%s has leaved the room' % str(name))
-      #   break
+    # TODO
     except KeyboardInterrupt:
       broadcast(MSG_CODE_FORCE_QUIT)
       break
 
-def broadcast(msg):
-  for client in clients:
+def broadcast(msg, client, target):
+  if client:
     client.send(bytes(msg, 'utf-8'))
+  elif target:
+    if target == 'all'
+      for client in clients:
+        client.send(bytes(msg, 'utf-8'))
+    else:   
+      client_target = clients[target]
+      client_target.send(bytes(msg, 'utf-8'))
 
 if __name__ == '__main__':
   SERVER.listen(4)
