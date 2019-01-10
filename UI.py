@@ -238,9 +238,11 @@ class ChatPage(tk.Frame):
                 self.chatDisplay.insert(tk.END, senderName + ': ' + msg + '\n')
                 self.chatDisplay.configure(state=tk.DISABLED)
 
-        elif action[constants.TYPE] == constants.RECEIVE_THREAD_INFO:
+        elif action[constants.TYPE] == constants.RECEIVE_THREAD_INFO:      
             for message in action[constants.PAYLOAD][constants.MESSAGES]:
+                self.chatDisplay.configure(state=tk.NORMAL)
                 self.chatDisplay.insert(tk.END, message[constants.SENDER] + ': ' + message[constants.MESSAGE] + '\n')
+                self.chatDisplay.configure(state=tk.DISABLED)
 
             isOnline = 'Offline'
             if action[constants.PAYLOAD][constants.FRIEND_STATUS][constants.IS_ONLINE]:
