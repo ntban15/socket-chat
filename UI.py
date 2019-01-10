@@ -121,16 +121,15 @@ class MainPage(tk.Frame):
 
         # friend list
         tk.Label(self, text='Friend list').grid(column=0, row=3, columnspan=2)
-        self.friendList = StringVar(value=[])
-        self.friendListBox = tk.Listbox(self, listvariable=self.friendList, height=30)
-        self.friendListBox.grid(column=0, row=4, columnspan=2)
-        self.friendListBox.bind('<<ListboxSelect>>', self.select_friend)
+        self.friendList = tk.Listbox(self, height=30)
+        self.friendList.grid(column=0, row=4, columnspan=2)
+        self.friendList.bind('<<ListboxSelect>>', self.select_friend)
 
     def select_friend(self, event):
-        selection = self.friendListBox.curselection()
+        selection = self.friendList.curselection()
         if len(selection) == 1:
             index = selection[0]
-            self.controller.set_receiver(self.friendList.get()[index])
+            self.controller.set_receiver(self.friendList.get(index)[0])
 
             initThreadAction = {}
             initThreadAction[constants.TYPE] = constants.INIT_THREAD
@@ -171,13 +170,11 @@ class MainPage(tk.Frame):
                 self.usernameText.configure(state=tk.DISABLED)
             
             filteredFriendList = filter(self.filter_friend_list, actionPayload[constants.USERS])
-            self.friendList.set(list(filteredFriendList))
+            self.friendList.insert(0, list(filteredFriendList))
         if actionType == constants.NEW_USER:
             newUserName = actionPayload[constants.USERNAME]
             if newUserName != self.controller.get_username():
-                newList = list(self.friendList.get())
-                newList.append(newUserName)
-                self.friendList.set(newList)
+                self.friendList.insert(tk.END, newUserName)
 
 class ChatPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -233,9 +230,8 @@ class ChatPage(tk.Frame):
                 self.chatDisplay.insert(tk.END, msg + '\n')
 
         elif action[constants.TYPE] == constants.RECEIVE_THREAD_INFO:
-            if (action[constants.PAYLOAD][constants.SENDER] == self.controller.get_username() or action[constants.PAYLOAD][constants.SENDER] == self.controller.get_receiver()):
-                for message in action[constants.PAYLOAD][constants.MESSAGES]:
-                    self.chatDisplay.insert(tk.END, message[constants.SENDER] + ': ' + message[constants.MESSAGE] + '\n')
+            for message in action[constants.PAYLOAD][constants.MESSAGES]:
+                self.chatDisplay.insert(tk.END, message[constants.SENDER] + ': ' + message[constants.MESSAGE] + '\n')
 
             isOnline = 'Offline'
             if action[constants.PAYLOAD][constants.FRIEND_STATUS][constants.IS_ONLINE]:
