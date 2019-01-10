@@ -2,6 +2,8 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import StringVar
+import utils
+
 class UI(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
@@ -10,6 +12,7 @@ class UI(tk.Tk):
         container.grid_rowconfigure(0, weight=1)
         container.grid_columnconfigure(0, weight=1)
 
+        self.actionQueue = kwargs['actionQueue']
         self.frames = {}
 
         for page in (LoginPage, MainPage):
@@ -24,6 +27,12 @@ class UI(tk.Tk):
     def show_frame(self, page):
         frame = self.frames[page]
         frame.tkraise()
+    def broadcast_action(self, action):
+        for frame in self.frames:
+            self.frames[frame].process_action(action)
+    def send_action(self, action):
+        utils.encodeDict(action)
+        self.actionQueue.put(action)
 
 class LoginPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -35,6 +44,9 @@ class LoginPage(tk.Frame):
         c = tk.Button(self, text="LOGIN",command=lambda : self.login(e,f,controller)).grid(row=5,column=0)
     def login(self, username, password, controller):
         controller.show_frame(MainPage)
+    def process_action(self, action):
+        pass
+
 class MainPage(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self, controller)
@@ -60,3 +72,6 @@ class MainPage(tk.Frame):
         tk.Label(self, text='Friend\'s status').grid(column=0, row=5)
         friendStatus = tk.Text(self, width=50, height=4)
         friendStatus.grid(column=1, row=5)
+
+    def process_action(self, action):
+        pass
