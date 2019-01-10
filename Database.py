@@ -4,9 +4,16 @@ import constants
 class Database:
   def __init__(self, file_name):
     self.database = {
-      'users': {},
+      'users': {
+        'abc': 'abc'
+      },
       'chats': {},
-      'statuses': {}
+      'statuses': {
+        'abc': {
+          'is_online': False,
+          'status': ''
+        }
+      }
     }
 
     # with open(file_name, 'r') as file:

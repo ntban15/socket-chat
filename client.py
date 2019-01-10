@@ -20,8 +20,8 @@ def receive(outputMsg):
   while True:
     try:
       msg = CLIENT.recv(BUFSIZ).decode('utf-8')
-      outputMsg(msg)
       print(msg)
+      outputMsg(msg)
       if msg == MSG_CODE_QUIT:
         print('Connection to server closed')
         break

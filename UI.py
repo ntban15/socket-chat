@@ -16,6 +16,7 @@ class UI(tk.Tk):
         self.username = ''
         self.actionQueue = actionQueue
         self.frames = {}
+        self.receiver = ''
 
         for page in (LoginPage, MainPage, ChatPage):
 
@@ -125,7 +126,7 @@ class MainPage(tk.Frame):
         self.friendListBox.grid(column=0, row=4, columnspan=2)
         self.friendListBox.bind('<<ListboxSelect>>', self.select_friend)
 
-    def select_friend(self):
+    def select_friend(self, event):
         selection = self.friendListBox.curselection()
         if len(selection) == 1:
             index = selection[0]
@@ -143,6 +144,8 @@ class MainPage(tk.Frame):
             self.controller.send_action(initThreadAction)
             self.controller.show_frame(ChatPage)
             
+    def filter_friend_list(self, friendname):
+        return friendname != self.controller.get_username()
 
     def update_status(self):
         myStatus = str(self.statusEntry.get(1.0, tk.END))
@@ -166,7 +169,15 @@ class MainPage(tk.Frame):
                 self.usernameText.configure(state=tk.NORMAL)
                 self.usernameText.insert(tk.END, self.controller.get_username())
                 self.usernameText.configure(state=tk.DISABLED)
-            self.friendList.set(actionPayload[constants.USERS])
+            
+            filteredFriendList = filter(self.filter_friend_list, actionPayload[constants.USERS])
+            self.friendList.set(list(filteredFriendList))
+        if actionType == constants.NEW_USER:
+            newUserName = actionPayload[constants.USERNAME]
+            if newUserName != self.controller.get_username():
+                newList = list(self.friendList.get())
+                newList.append(newUserName)
+                self.friendList.set(newList)
 
 class ChatPage(tk.Frame):
     def __init__(self, parent, controller):

@@ -87,7 +87,6 @@ def handle_client(client):
           }
           
           broadcast(utils.encodeDict(res_action), client, None)
-          client.close()
 
       # CLOSE_CONNECTION -> no action sent to client ???
       elif action[constants.TYPE] == constants.CLOSE_CONNECTION:
