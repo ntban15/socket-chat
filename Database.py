@@ -3,21 +3,15 @@ import constants
 
 class Database:
   def __init__(self, file_name):
-    self.database = {
-      'users': {
-        'abc': 'abc'
-      },
-      'chats': {},
-      'statuses': {
-        'abc': {
-          'is_online': False,
-          'status': ''
-        }
-      }
-    }
+    self.db_name = file_name
 
-    # with open(file_name, 'r') as file:
-    #   self.database = utils.decodeDict(file)
+    with open(self.db_name, 'r') as file:
+      db_text = file.read()
+      self.database = utils.decodeDict(db_text)
+  
+  def write_db(self):
+    with open(self.db_name, 'w') as file:
+      file.write(utils.encodeDict(self.database))
 
   def chat_id_generator(self, username1, username2):
     if (username1 > username2):
@@ -49,12 +43,18 @@ class Database:
     else:
       self.database[constants.CHATS][chat_id] = [message_entry]
 
+    # write new db to file
+    self.write_db()
+
   def add_message_all(self, message, username):
     new_entry = {}
     new_entry[constants.SENDER] = username
     new_entry[constants.MESSAGE] = message
 
     self.database[constants.CHATS][constants.ALL].push(new_entry)
+
+    # write new db to file
+    self.write_db()
 
   def register(self, username, password):
     self.database[constants.USERS][username] = password
@@ -63,11 +63,20 @@ class Database:
       constants.STATUS: ''
     }
 
+    # write new db to file
+    self.write_db()
+
   def update_status(self, username, status):
     self.database[constants.STATUSES][username][constants.STATUS] = status
 
+    # write new db to file
+    self.write_db()
+
   def update_online_status(self, username, online_status):
     self.database[constants.STATUSES][username][constants.IS_ONLINE] = online_status
+
+    # write new db to file
+    self.write_db()
 
   def authenticate(self, username, password):
     if (username in self.database[constants.USERS]):

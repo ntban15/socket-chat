@@ -17,7 +17,7 @@ SERVER = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 SERVER.bind(ADDR)
 
 # database
-database = Database.Database('database.json')
+database = Database.Database('db.txt')
 
 def accept_connections():
   while True:
