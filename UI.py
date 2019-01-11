@@ -107,22 +107,22 @@ class MainPage(tk.Frame):
         self.controller = controller
         self.isInitialized = False
 
-        self.usernameText = tk.Text(self, width=50, state=tk.DISABLED)
+        self.usernameText = tk.Text(self, width=20, height=2, state=tk.DISABLED)
         tk.Label(self, text='Name').grid(column=0, row=0)
         self.usernameText.grid(column=1, row=0)
 
         # status
-        self.statusEntry = tk.Text(self, width=50, height=4)
+        self.statusEntry = tk.Text(self, width=20, height=4)
         tk.Label(self, text='Status').grid(column=0, row=1)
         self.statusEntry.grid(column=1, row=1)
 
         # update name and status button
-        tk.Button(self, text='Update', command=self.update_status).grid(column=1, row=2)
+        tk.Button(self, text='Update', command=self.update_status).grid(column=1, row=3)
 
         # friend list
-        tk.Label(self, text='Friend list').grid(column=0, row=3, columnspan=2)
+        tk.Label(self, text='Friend list').grid(column=0, row=5, columnspan=2)
         self.friendList = tk.Listbox(self, height=30)
-        self.friendList.grid(column=0, row=4, columnspan=2)
+        self.friendList.grid(column=0, row=6, columnspan=2)
         self.friendList.bind('<<ListboxSelect>>', self.select_friend)
         self.friendList.insert(tk.END, ('all',))
 
@@ -183,7 +183,7 @@ class ChatPage(tk.Frame):
         self.controller = controller
 
         # back button
-        tk.Button(self, text='Back', command=self.back).grid(column=1, row=3)
+        tk.Button(self, text='Back', command=self.back).grid(column=1, row=7)
         
         # friend name
         self.friendName = StringVar()
@@ -191,21 +191,20 @@ class ChatPage(tk.Frame):
         tk.Label(self, textvariable=self.friendName).grid(column=1, row=0)
 
         # friend status
-        tk.Label(self, text='Friend\'s status').grid(column=0, row=5)
-        self.friendStatus = tk.Text(self, width=50, height=4, state=tk.DISABLED)
-        self.friendStatus.grid(column=1, row=5)
+        self.friendStatus = tk.Text(self, width=30, height=10, state=tk.DISABLED)
+        self.friendStatus.grid(column=1, row=2, sticky=(tk.N,))
 
         # the chat input
         self.chatInput = StringVar()
-        chatEntry = tk.Entry(self, width=70, textvariable=self.chatInput)
-        chatEntry.grid(column=0, row=2)
+        chatEntry = tk.Entry(self, width=50, textvariable=self.chatInput)
+        chatEntry.grid(column=0, row=5)
 
         # the button
-        tk.Button(self, text='Send', command=self.sendMsg).grid(column=1, row=2)
+        tk.Button(self, text='Send', command=self.sendMsg).grid(column=0, row=7)
 
         # the chat display
-        self.chatDisplay = tk.Text(self, width=100, height=50, state=tk.DISABLED)
-        self.chatDisplay.grid(column=0, row=1, columnspan=2, sticky=(tk.N,))
+        self.chatDisplay = tk.Text(self, width=50, height=20, state=tk.DISABLED)
+        self.chatDisplay.grid(column=0, row=2, columnspan=1, rowspan=1, sticky=(tk.NW,))
         
 
     def back(self):
@@ -213,6 +212,7 @@ class ChatPage(tk.Frame):
         self.chatDisplay.delete(1.0, tk.END)
         self.chatDisplay.configure(state=tk.DISABLED)
         self.controller.show_frame(MainPage)
+        self.controller.set_username('')
 
     def sendMsg(self):
         msg = str(self.chatInput.get())
