@@ -171,7 +171,9 @@ class MainPage(tk.Frame):
                 self.usernameText.configure(state=tk.DISABLED)
             
             filteredFriendList = filter(self.filter_friend_list, actionPayload[constants.USERS])
-            self.friendList.insert(0, list(filteredFriendList))
+            for friend in list(filteredFriendList):
+                self.friendList.insert(0, (friend,))
+
         if actionType == constants.NEW_USER:
             newUserName = actionPayload[constants.USERNAME]
             if newUserName != self.controller.get_username():
@@ -212,7 +214,7 @@ class ChatPage(tk.Frame):
         self.chatDisplay.delete(1.0, tk.END)
         self.chatDisplay.configure(state=tk.DISABLED)
         self.controller.show_frame(MainPage)
-        self.controller.set_username('')
+        self.controller.set_receiver('')
 
     def sendMsg(self):
         msg = str(self.chatInput.get())
