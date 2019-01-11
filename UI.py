@@ -2,6 +2,7 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import StringVar
+from PIL import ImageTk, Image
 import utils
 import constants
 
@@ -111,6 +112,12 @@ class MainPage(tk.Frame):
         tk.Label(self, text='Name').grid(column=0, row=0)
         self.usernameText.grid(column=1, row=0)
 
+        # friend avatar
+        img = ImageTk.PhotoImage(Image.open('avatar.jpg').resize((200, 200), Image.ANTIALIAS))
+        self.myAvatar = tk.Label(self, width=200, height=200, image=img)
+        self.myAvatar.image = img
+        self.myAvatar.grid(column=1, row=2)
+
         # status
         self.statusEntry = tk.Text(self, width=20, height=4)
         tk.Label(self, text='Status').grid(column=0, row=1)
@@ -196,6 +203,12 @@ class ChatPage(tk.Frame):
         self.friendStatus = tk.Text(self, width=30, height=10, state=tk.DISABLED)
         self.friendStatus.grid(column=1, row=2, sticky=(tk.N,))
 
+        # friend avatar
+        img = ImageTk.PhotoImage(Image.open('avatar.jpg').resize((200, 200), Image.ANTIALIAS))
+        self.friendAvatar = tk.Label(self, width=200, height=200, image=img)
+        self.friendAvatar.image = img
+        self.friendAvatar.grid(column=1, row=3)
+
         # the chat input
         self.chatInput = StringVar()
         chatEntry = tk.Entry(self, width=50, textvariable=self.chatInput)
@@ -206,7 +219,7 @@ class ChatPage(tk.Frame):
 
         # the chat display
         self.chatDisplay = tk.Text(self, width=50, height=20, state=tk.DISABLED)
-        self.chatDisplay.grid(column=0, row=2, columnspan=1, rowspan=1, sticky=(tk.NW,))
+        self.chatDisplay.grid(column=0, row=2, columnspan=1, rowspan=2, sticky=(tk.NW,))
         
 
     def back(self):
