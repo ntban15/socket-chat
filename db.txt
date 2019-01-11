@@ -1,1 +1,1 @@
-{"users": {}, "chats": {}, "statuses": {}}
+{"users": {"def": "def", "abc": "abc"}, "chats": {"abc-def": [{"sender": "abc", "receiver": "def", "message": "avc"}], "all": [{"sender": "abc", "message": "abv"}, {"sender": "def", "message": "\u00e2ss"}]}, "statuses": {"def": {"is_online": true, "status": ""}, "abc": {"is_online": true, "status": "abc\n"}, "all": {"is_online": true, "status": ""}}}
