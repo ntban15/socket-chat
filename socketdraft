@@ -17,12 +17,12 @@
       }
     ]
   },
-  statuses: [
+  statuses: {
     john_smith: {
       is_online: false,
       status: 'Haha'
     }
-  ]
+  }
 }
 
 
@@ -76,6 +76,15 @@
 }
 
 # SERVER
+{
+  type: 'NEW_USER',
+  payload: {
+    username: '',
+    status: ''
+    is_online: True
+  }
+}
+
 {
   type: 'UPDATE_FRIEND_STATUS',
   payload: {
