@@ -11,7 +11,8 @@ class Database:
       'statuses': {
         'abc': {
           'is_online': False,
-          'status': ''
+          'status': '',
+          'avatar': 'avatar.jpg'
         },
         'all': {
           'is_online': True,
@@ -69,11 +70,13 @@ class Database:
     self.database[constants.USERS][username] = password
     self.database[constants.STATUSES][username] = {
       constants.IS_ONLINE: True,
-      constants.STATUS: ''
+      constants.STATUS: '',
+      constants.AVATAR: 'avatar.jpg'
     }
 
-  def update_status(self, username, status):
+  def update_status(self, username, status, avatar):
     self.database[constants.STATUSES][username][constants.STATUS] = status
+    self.database[constants.STATUSES][username][constants.AVATAR] = avatar
 
   def update_online_status(self, username, online_status):
     self.database[constants.STATUSES][username][constants.IS_ONLINE] = online_status

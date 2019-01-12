@@ -62,15 +62,20 @@ def handle_client(client):
 
           # 2. notify other
           res_action2 = {}
-          status = database.get_status(username)[constants.STATUS]
+
+          user_status = database.get_status(username)
+          status = user_status[constants.STATUS]
+          avatar = user_status[constants.AVATAR]
           
           if not is_new_user:
             res_action2[constants.TYPE] = constants.UPDATE_FRIEND_STATUS
             res_action2[constants.PAYLOAD] = {
               constants.USERNAME: username,
               constants.STATUS: status,
+              constants.AVATAR: avatar,
               constants.IS_ONLINE: True
             }
+
             broadcast(utils.encodeDict(res_action2), None, 'all')
           else:
             res_action2[constants.TYPE] = constants.NEW_USER
@@ -78,8 +83,17 @@ def handle_client(client):
               constants.USERNAME: username
             }
             broadcast(utils.encodeDict(res_action2), None, 'all')
-        
         # WRONG PASSWORD
+          res_action3 = {}
+
+          res_action3[constants.TYPE] = constants.UPDATE_MY_STATUS
+          res_action3[constants.PAYLOAD] = {
+            constants.STATUS: status,
+            constants.AVATAR: avatar
+          }
+
+          broadcast(utils.encodeDict(res_action3), None, username)
+
         else:
           res_action[constants.TYPE] = constants.AUTHENTICATION_FAIL
           res_action[constants.PAYLOAD] = {
@@ -95,7 +109,9 @@ def handle_client(client):
         # update online status to offline if a user's connection is closed
         database.update_online_status(username, False)
         # get user's status from database
-        status = database.get_status(username)[constants.STATUS]
+        user_status = database.get_status(username)
+        status = user_status[constants.STATUS]
+        avatar = user_status[constants.AVATAR]
 
         # close client socket
         client.close()
@@ -107,6 +123,7 @@ def handle_client(client):
         res_action[constants.PAYLOAD] = {
           constants.USERNAME: username,
           constants.STATUS: status,
+          constants.AVATAR: avatar,
           constants.IS_ONLINE: False
         }
 
@@ -170,14 +187,16 @@ def handle_client(client):
       elif action[constants.TYPE] == constants.UPDATE_STATUS:
         username = action[constants.PAYLOAD][constants.USERNAME]
         status = action[constants.PAYLOAD][constants.STATUS]
+        avatar = action[constants.PAYLOAD][constants.AVATAR]
 
         # update user's status
-        database.update_status(username, status)
+        database.update_status(username, status, avatar)
 
         res_action[constants.TYPE] = constants.UPDATE_FRIEND_STATUS
         res_action[constants.PAYLOAD] = {
           constants.USERNAME: username,
           constants.STATUS: status,
+          constants.AVATAR: avatar,
           constants.IS_ONLINE: True
         }
 

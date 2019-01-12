@@ -2,6 +2,7 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import StringVar
+from tkinter import filedialog
 from PIL import ImageTk, Image
 import utils
 import constants
@@ -18,6 +19,7 @@ class UI(tk.Tk):
         self.actionQueue = actionQueue
         self.frames = {}
         self.receiver = ''
+        self.avatar = 'avatar.jpg'
 
         for page in (LoginPage, MainPage, ChatPage):
 
@@ -52,6 +54,12 @@ class UI(tk.Tk):
 
     def get_receiver(self):
         return self.receiver
+
+    def get_avatar(self):
+        return self.avatar
+
+    def set_avatar(self, new_avatar):
+        self.avatar = new_avatar
 
     def quit(self):
         pass
@@ -111,12 +119,14 @@ class MainPage(tk.Frame):
         self.usernameText = tk.Text(self, width=20, height=2, state=tk.DISABLED)
         tk.Label(self, text='Name').grid(column=0, row=0)
         self.usernameText.grid(column=1, row=0)
+        
 
         # friend avatar
-        img = ImageTk.PhotoImage(Image.open('avatar.jpg').resize((200, 200), Image.ANTIALIAS))
+        img = ImageTk.PhotoImage(Image.open(self.controller.avatar).resize((200, 200), Image.ANTIALIAS))
         self.myAvatar = tk.Label(self, width=200, height=200, image=img)
         self.myAvatar.image = img
         self.myAvatar.grid(column=1, row=2)
+        tk.Button(self, text='Change Avatar', command=self.change_avatar).grid(column=1, row=4)
 
         # status
         self.statusEntry = tk.Text(self, width=20, height=4)
@@ -132,6 +142,25 @@ class MainPage(tk.Frame):
         self.friendList.grid(column=0, row=6, columnspan=2)
         self.friendList.bind('<<ListboxSelect>>', self.select_friend)
         self.friendList.insert(tk.END, ('all',))
+    
+    def init_status(self, new_status):
+        self.statusEntry.delete(1.0, tk.END)
+        self.statusEntry = tk.Text(self, width=20, height=4)
+        self.statusEntry.insert(tk.END, new_status)
+        self.statusEntry.grid(column=1, row=1)
+
+    def change_avatar(self):
+        avatar = filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
+        self.display_avatar(avatar)
+        self.controller.set_avatar(avatar)
+        self.update_status(avatar)
+        
+        
+    def display_avatar(avatar_name):
+        img = ImageTk.PhotoImage(Image.open(avatar_name).resize((200, 200), Image.ANTIALIAS))
+        self.myAvatar = tk.Label(self, width=200, height=200, image=img)
+        self.myAvatar.image = img
+
 
     def select_friend(self, event):
         selection = self.friendList.curselection()
@@ -157,12 +186,14 @@ class MainPage(tk.Frame):
     def update_status(self):
         myStatus = str(self.statusEntry.get(1.0, tk.END))
         myUsername = self.controller.get_username()
+        myAvatar = self.controller.get_avatar()
 
         updateStatusAction = {}
         updateStatusAction[constants.TYPE] = constants.UPDATE_STATUS
         updateStatusAction[constants.PAYLOAD] = {
             constants.USERNAME: myUsername,
-            constants.STATUS: myStatus
+            constants.STATUS: myStatus,
+            constants.AVATAR: myAvatar
         }
 
         self.controller.send_action(updateStatusAction)
@@ -185,6 +216,12 @@ class MainPage(tk.Frame):
             newUserName = actionPayload[constants.USERNAME]
             if newUserName != self.controller.get_username():
                 self.friendList.insert(tk.END, (newUserName,))
+        if actionType == constants.UPDATE_MY_STATUS:
+            new_status = actionPayload[constants.STATUS]
+            new_avatar = actionPayload[constants.AVATAR]
+            self.init_status(new_status)
+            self.controller.set_avatar(new_avatar)
+            self.display_avatar(new_avatar)
 
 class ChatPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -208,6 +245,7 @@ class ChatPage(tk.Frame):
         self.friendAvatar = tk.Label(self, width=200, height=200, image=img)
         self.friendAvatar.image = img
         self.friendAvatar.grid(column=1, row=3)
+        
 
         # the chat input
         self.chatInput = StringVar()
@@ -221,6 +259,10 @@ class ChatPage(tk.Frame):
         self.chatDisplay = tk.Text(self, width=50, height=20, state=tk.DISABLED)
         self.chatDisplay.grid(column=0, row=2, columnspan=1, rowspan=2, sticky=(tk.NW,))
         
+    def display_avatar(avatar_name):
+        img = ImageTk.PhotoImage(Image.open(avatar_name).resize((200, 200), Image.ANTIALIAS))
+        self.friendAvatar = tk.Label(self, width=200, height=200, image=img)
+        self.friendAvatar.image = img
 
     def back(self):
         self.chatDisplay.configure(state=tk.NORMAL)
@@ -228,6 +270,7 @@ class ChatPage(tk.Frame):
         self.chatDisplay.configure(state=tk.DISABLED)
         self.controller.show_frame(MainPage)
         self.controller.set_receiver('')
+        # self.controller.set_avatar('avatar.jpg')
 
     def sendMsg(self):
         msg = str(self.chatInput.get())
@@ -282,6 +325,7 @@ class ChatPage(tk.Frame):
             self.friendStatus.delete(1.0, tk.END)
             self.friendStatus.insert(tk.END, isOnline + ' - ' + action[constants.PAYLOAD][constants.FRIEND_STATUS][constants.STATUS])
             self.friendStatus.configure(state=tk.DISABLED)
+            self.display_avatar(action[constants.PAYLOAD][constants.FRIEND_STATUS][constants.AVATAR])
 
         elif action[constants.TYPE] == constants.UPDATE_FRIEND_STATUS:
             if (action[constants.PAYLOAD][constants.USERNAME] == self.controller.get_receiver()):
@@ -292,3 +336,4 @@ class ChatPage(tk.Frame):
                 self.friendStatus.delete(1.0, tk.END)
                 self.friendStatus.insert(tk.END, isOnline + ' - ' + action[constants.PAYLOAD][constants.STATUS])
                 self.friendStatus.configure(state=tk.DISABLED)
+                self.display_avatar(action[constants.PAYLOAD][constants.AVATAR])
