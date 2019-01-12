@@ -167,7 +167,7 @@ class MainPage(tk.Frame):
         
     def display_avatar(self, avatar_name):
         img = ImageTk.PhotoImage(Image.open(avatar_name).resize((200, 200), Image.ANTIALIAS))
-        self.myAvatar = tk.Label(self, width=200, height=200, image=img)
+        self.myAvatar.configure(image=img)
         self.myAvatar.image = img
 
     def search_filter(self):
@@ -294,7 +294,7 @@ class ChatPage(tk.Frame):
         
     def display_avatar(self, avatar_name):
         img = ImageTk.PhotoImage(Image.open(avatar_name).resize((200, 200), Image.ANTIALIAS))
-        self.friendAvatar = tk.Label(self, width=200, height=200, image=img)
+        self.friendAvatar.configure(image=img)
         self.friendAvatar.image = img
 
     def back(self):
