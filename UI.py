@@ -154,10 +154,10 @@ class MainPage(tk.Frame):
         avatar = filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
         self.display_avatar(avatar)
         self.controller.set_avatar(avatar)
-        self.update_status(avatar)
+        self.update_status()
         
         
-    def display_avatar(avatar_name):
+    def display_avatar(self, avatar_name):
         img = ImageTk.PhotoImage(Image.open(avatar_name).resize((200, 200), Image.ANTIALIAS))
         self.myAvatar = tk.Label(self, width=200, height=200, image=img)
         self.myAvatar.image = img
@@ -294,7 +294,7 @@ class ChatPage(tk.Frame):
         self.chatDisplay = tk.Text(self, width=50, height=20, state=tk.DISABLED)
         self.chatDisplay.grid(column=0, row=2, columnspan=1, rowspan=2, sticky=(tk.NW,))
         
-    def display_avatar(avatar_name):
+    def display_avatar(self, avatar_name):
         img = ImageTk.PhotoImage(Image.open(avatar_name).resize((200, 200), Image.ANTIALIAS))
         self.friendAvatar = tk.Label(self, width=200, height=200, image=img)
         self.friendAvatar.image = img
