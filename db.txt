@@ -1,1 +1,7 @@
-{"users": {"abc": "abc", "def": "123", "tuv": "123"}, "chats": {"abc-def": [{"sender": "def", "receiver": "abc", "message": "yooloooooooooooo"}]}, "statuses": {"abc": {"is_online": true, "status": ""}, "def": {"is_online": true, "status": ""}, "tuv": {"is_online": true, "status": ""}}}
+{
+  "users": {},
+  "chats": {},
+  "statuses": {
+    "all": { "is_online": true, "status": "", "avatar": "avatar.jpg" }
+  }
+}
