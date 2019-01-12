@@ -106,6 +106,7 @@ class MainPage(tk.Frame):
         tk.Frame.__init__(self, controller)
         self.controller = controller
         self.isInitialized = False
+        self.filteredMode = False
 
         self.usernameText = tk.Text(self, width=50, state=tk.DISABLED)
         tk.Label(self, text='Name').grid(column=0, row=0)
@@ -122,14 +123,42 @@ class MainPage(tk.Frame):
         # friend list
         tk.Label(self, text='Friend list').grid(column=0, row=3, columnspan=2)
         self.friendList = tk.Listbox(self, height=30)
-        self.friendList.grid(column=0, row=4, columnspan=2)
+        self.friendList.grid(column=0, row=5, columnspan=2)
         self.friendList.bind('<<ListboxSelect>>', self.select_friend)
 
-    def select_friend(self, event):
-        selection = self.friendList.curselection()
+        # filtered friend list
+        self.filteredFriendList = tk.Listbox(self, height=30)
+        self.filteredFriendList.bind('<<ListboxSelect>>', self.select_filtered_friend)
+
+        # filter search
+        self.searchEntry = StringVar()
+        tk.Entry(self, textvariable=self.searchEntry).grid(column=0, row=4)
+        tk.Button(self, text='Search', command=self.search_filter).grid(column=1, row=4)
+
+    def search_filter(self):
+
+        query = str(self.searchEntry.get())
+        if query == '':
+            if self.filteredMode:
+                self.friendList.grid(column=0, row=5, columnspan=2)
+                self.filteredFriendList.grid_forget()
+                self.filteredMode = False
+        else:
+            if not self.filteredMode:
+                originalList = self.friendList.get(0, tk.END)
+                newList = filter(lambda friendname: query in friendname, originalList)
+
+                self.friendList.grid_forget()
+                self.filteredFriendList.grid(column=0, row=5, columnspan=2)
+                self.filteredFriendList.delete(0, tk.END)
+                self.filteredFriendList.insert(tk.END, list(newList))
+                self.filteredMode = True
+
+    def core_select_friend(self, friendList):
+        selection = friendList.curselection()
         if len(selection) == 1:
             index = selection[0]
-            self.controller.set_receiver(self.friendList.get(index)[0])
+            self.controller.set_receiver(friendList.get(index)[0])
 
             initThreadAction = {}
             initThreadAction[constants.TYPE] = constants.INIT_THREAD
@@ -142,6 +171,12 @@ class MainPage(tk.Frame):
 
             self.controller.send_action(initThreadAction)
             self.controller.show_frame(ChatPage)
+
+    def select_friend(self, event):
+        self.core_select_friend(self.friendList)
+
+    def select_filtered_friend(self, event):
+        self.core_select_friend(self.filteredFriendList)
             
     def filter_friend_list(self, friendname):
         return friendname != self.controller.get_username()
