@@ -1,7 +1,1 @@
-{
-  "users": {},
-  "chats": {},
-  "statuses": {
-    "all": { "is_online": true, "status": "", "avatar": "avatar.jpg" }
-  }
-}
+{"users": {"abc": "abc", "def": "123"}, "chats": {"abc-def": [{"sender": "abc", "receiver": "def", "message": "haha"}, {"sender": "def", "receiver": "abc", "message": "hoho"}], "all": [{"sender": "abc", "message": "lala"}]}, "statuses": {"all": {"is_online": true, "status": "", "avatar": "avatar.jpg"}, "abc": {"is_online": true, "status": "hoho\n\n", "avatar": "/home/annguyen/Documents/APCS/network/socket-chat/avatar_1.jpg"}, "def": {"is_online": true, "status": "", "avatar": "avatar.jpg"}}}
