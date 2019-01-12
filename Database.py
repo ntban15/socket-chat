@@ -14,6 +14,8 @@ class Database:
       file.write(utils.encodeDict(self.database))
 
   def chat_id_generator(self, username1, username2):
+    if username2 == 'all':
+      return username2
     if (username1 > username2):
       return username2 + '-' + username1
     return username1 + '-' + username2
@@ -47,11 +49,14 @@ class Database:
     self.write_db()
 
   def add_message_all(self, message, username):
-    new_entry = {}
-    new_entry[constants.SENDER] = username
-    new_entry[constants.MESSAGE] = message
-
-    self.database[constants.CHATS][constants.ALL].push(new_entry)
+    message_entry = {
+      constants.SENDER: username,
+      constants.MESSAGE: message
+    }
+    if constants.ALL in self.database[constants.CHATS]:
+      self.database[constants.CHATS][constants.ALL].append(message_entry)
+    else:
+      self.database[constants.CHATS][constants.ALL] = [message_entry]
 
     # write new db to file
     self.write_db()
@@ -60,14 +65,16 @@ class Database:
     self.database[constants.USERS][username] = password
     self.database[constants.STATUSES][username] = {
       constants.IS_ONLINE: True,
-      constants.STATUS: ''
+      constants.STATUS: '',
+      constants.AVATAR: 'avatar.jpg'
     }
 
     # write new db to file
     self.write_db()
 
-  def update_status(self, username, status):
+  def update_status(self, username, status, avatar):
     self.database[constants.STATUSES][username][constants.STATUS] = status
+    self.database[constants.STATUSES][username][constants.AVATAR] = avatar
 
     # write new db to file
     self.write_db()
