@@ -179,13 +179,14 @@ class MainPage(tk.Frame):
                 self.filteredMode = False
         else:
             if not self.filteredMode:
-                originalList = self.friendList.get(0, tk.END)
+                originalList = map(lambda entry: entry[0], self.friendList.get(0, tk.END))
                 newList = filter(lambda friendname: query in friendname, originalList)
 
                 self.friendList.grid_forget()
                 self.filteredFriendList.grid(column=0, row=7, columnspan=2)
                 self.filteredFriendList.delete(0, tk.END)
                 for friend in list(newList):
+                    print(friend)
                     self.filteredFriendList.insert(tk.END, (friend,))
                 self.filteredMode = True
 
