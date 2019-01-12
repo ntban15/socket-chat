@@ -143,6 +143,15 @@ class MainPage(tk.Frame):
         self.friendList.grid(column=0, row=6, columnspan=2)
         self.friendList.bind('<<ListboxSelect>>', self.select_friend)
         self.friendList.insert(tk.END, ('all',))
+
+        # filtered friend list
+        self.filteredFriendList = tk.Listbox(self, height=30)
+        self.filteredFriendList.bind('<<ListboxSelect>>', self.select_filtered_friend)
+
+        # filter search
+        self.searchEntry = StringVar()
+        tk.Entry(self, textvariable=self.searchEntry).grid(column=0, row=4)
+        tk.Button(self, text='Search', command=self.search_filter).grid(column=1, row=4)
     
     def init_status(self, new_status):
         self.statusEntry.delete(1.0, tk.END)
@@ -156,28 +165,16 @@ class MainPage(tk.Frame):
         self.controller.set_avatar(avatar)
         self.update_status()
         
-        
     def display_avatar(self, avatar_name):
         img = ImageTk.PhotoImage(Image.open(avatar_name).resize((200, 200), Image.ANTIALIAS))
         self.myAvatar = tk.Label(self, width=200, height=200, image=img)
         self.myAvatar.image = img
 
-
-        # filtered friend list
-        self.filteredFriendList = tk.Listbox(self, height=30)
-        self.filteredFriendList.bind('<<ListboxSelect>>', self.select_filtered_friend)
-
-        # filter search
-        self.searchEntry = StringVar()
-        tk.Entry(self, textvariable=self.searchEntry).grid(column=0, row=4)
-        tk.Button(self, text='Search', command=self.search_filter).grid(column=1, row=4)
-
     def search_filter(self):
-
         query = str(self.searchEntry.get())
         if query == '':
             if self.filteredMode:
-                self.friendList.grid(column=0, row=5, columnspan=2)
+                self.friendList.grid(column=0, row=6, columnspan=2)
                 self.filteredFriendList.grid_forget()
                 self.filteredMode = False
         else:
@@ -186,9 +183,10 @@ class MainPage(tk.Frame):
                 newList = filter(lambda friendname: query in friendname, originalList)
 
                 self.friendList.grid_forget()
-                self.filteredFriendList.grid(column=0, row=5, columnspan=2)
+                self.filteredFriendList.grid(column=0, row=6, columnspan=2)
                 self.filteredFriendList.delete(0, tk.END)
-                self.filteredFriendList.insert(tk.END, list(newList))
+                for friend in list(newList):
+                    self.filteredFriendList.insert(tk.END, (friend,))
                 self.filteredMode = True
 
     def core_select_friend(self, friendList):
