@@ -16,12 +16,35 @@ CLIENT.connect((HOST, PORT))
 
 MSG_CODE_QUIT = '/quit'
 
+def split_action(action):
+  actions = []
+
+  start_index = 0
+  end_index = 0
+  brackets = 0
+  for c in action:
+    if c == '{':
+      brackets = brackets + 1
+    if c == '}':
+      brackets = brackets - 1
+      if brackets == 0:
+        actions.append(action[start_index:end_index + 1])
+        start_index = end_index + 1
+    
+    end_index = end_index + 1
+
+  return actions
+
 def receive(outputMsg):
   while True:
     try:
       msg = CLIENT.recv(BUFSIZ).decode('utf-8')
-      print(msg)
-      outputMsg(msg)
+      split_actions = split_action(msg)
+
+      for action in split_actions:
+        print(action)
+        outputMsg(action)
+      
       if msg == MSG_CODE_QUIT:
         print('Connection to server closed')
         break
